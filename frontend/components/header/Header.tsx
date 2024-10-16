@@ -54,18 +54,28 @@ export default function Header() {
           <div className="hidden md:flex items-center space-x-4 text-sm">
             <ul className="flex space-x-10 text-[#6A6E9F] font-semibold">
               <li>
-                <Link href="/marketplace" className="hover:text-blue-100">
-                  MarketPlace
+                <Link href="/create-shipment" className="hover:text-blue-100">
+                  create
                 </Link>
               </li>
               <li>
-                <Link href="/sellNFT" className="hover:text-blue-100">
-                  List
+                <Link href="/start-shipment" className="hover:text-blue-100">
+                  start
                 </Link>
               </li>
               <li>
-                <Link href="/profile" className="hover:text-blue-100">
-                  Profile
+                <Link href="/complete-shipment" className="hover:text-blue-100">
+                  complete
+                </Link>
+              </li>
+              <li>
+                <Link href="/view-shipment" className="hover:text-blue-100">
+                  view-shipment
+                </Link>
+              </li>
+              <li>
+                <Link href="/view-transactions" className="hover:text-blue-100">
+                  view-transactions
                 </Link>
               </li>
             </ul>
