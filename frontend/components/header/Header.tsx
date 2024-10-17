@@ -45,36 +45,36 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-20 left-0 w-full bg-gradient-to-t from-indigo-950 to-indigo-900 text-white p-4 shadow-md">
+    <header className="sticky top-0 z-20 left-0 w-full bg-white text-black p-4 shadow-md">
       <div className="max-w-6xl mx-auto flex items-center justify-between">
         <div className="text-lg md:text-2xl font-bold">
           <Link href="/">JAZ Corp</Link>
         </div>
         <div className="flex space-x-10 items-center">
           <div className="hidden md:flex items-center space-x-4 text-sm">
-            <ul className="flex space-x-10 text-[#6A6E9F] font-semibold">
+            <ul className="flex space-x-10 text-black font-semibold">
               <li>
-                <Link href="/create-shipment" className="hover:text-blue-100">
+                <Link href="/create-shipment" className="hover:text-black">
                   create
                 </Link>
               </li>
               <li>
-                <Link href="/start-shipment" className="hover:text-blue-100">
+                <Link href="/start-shipment" className="hover:text-black">
                   start
                 </Link>
               </li>
               <li>
-                <Link href="/complete-shipment" className="hover:text-blue-100">
+                <Link href="/complete-shipment" className="hover:text-black">
                   complete
                 </Link>
               </li>
               <li>
-                <Link href="/view-shipment" className="hover:text-blue-100">
+                <Link href="/view-shipment" className="hover:text-black">
                   view-shipment
                 </Link>
               </li>
               <li>
-                <Link href="/view-transactions" className="hover:text-blue-100">
+                <Link href="/view-transactions" className="hover:text-black">
                   view-transactions
                 </Link>
               </li>
@@ -82,10 +82,10 @@ export default function Header() {
           </div>
           <div className="">
             <button
-              className={`px-4 py-2 rounded-full text-sm flex items-center ${
+              className={`px-4 py-2 rounded-full text-sm font-semibold text-white flex items-center ${
                 isConnected
-                  ? "bg-indigo-600 cursor-not-allowed"
-                  : "bg-indigo-500 hover:bg-indigo-400"
+                  ? "bg-[#5F259F] cursor-not-allowed"
+                  : "bg-[#5F259F] hover:bg-inblack"
               }`}
               onClick={connectWallet}
               disabled={isConnected}
@@ -111,17 +111,17 @@ export default function Header() {
         <nav className="md:hidden flex flex-col items-center space-y-4 mt-4">
           <ul className="flex flex-col items-center space-y-4">
             <li>
-              <Link href="/marketplace" className="text-blue-300 hover:text-blue-500">
+              <Link href="/marketplace" className="text-blue-300 hover:text-black">
                 MarketPlace
               </Link>
             </li>
             <li>
-              <Link href="/sellNFT" className="text-blue-300 hover:text-blue-500">
+              <Link href="/sellNFT" className="text-blue-300 hover:text-black">
                 List
               </Link>
             </li>
             <li>
-              <Link href="/profile" className="text-blue-300 hover:text-blue-500">
+              <Link href="/profile" className="text-blue-300 hover:text-black">
                 Profile
               </Link>
             </li>
