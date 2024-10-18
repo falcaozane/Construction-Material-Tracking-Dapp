@@ -3,13 +3,13 @@ import { WalletContext } from "@/context/wallet";
 import { useContext, useEffect, useState } from "react";
 import { ethers } from "ethers";
 import materialTracking from "@/app/materialTracking.json";
-import ShipmentCard from "@/components/shipmentCard/ShipmentCard";
 
 export default function ViewShipments() {
   const [shipments, setShipments] = useState([]);
   const [loading, setLoading] = useState(false);
   const { isConnected, signer } = useContext(WalletContext);
 
+  // Fetch shipments from the contract
   async function getShipments() {
     const shipmentsArray = [];
     if (!signer) return;
@@ -20,25 +20,47 @@ export default function ViewShipments() {
     );
 
     try {
-      let transaction = await contract.getAllShipments();
+      // Call the correct function from the smart contract
+      let transactions = await contract.getAllMaterialTransactions();
 
-      for (const shipment of transaction) {
-        const shipmentId = parseInt(shipment.shipmentId);
+      // Loop through each shipment and format the data correctly
+      for (const shipment of transactions) {
+        const supplier = shipment.supplier;
         const contractor = shipment.contractor;
         const materialType = shipment.materialType;
-        const quantity = ethers.formatUnits(shipment.quantity, "ether");
-        const distance = ethers.formatUnits(shipment.distance, "ether");
-        const price = ethers.formatEther(shipment.price);
-        const status = shipment.status;
-        
+        const quantity = shipment.quantity.toString(); // Assuming it's not in ether
+        const pickupTime = new Date(parseInt(shipment.pickupTime) * 1000).toLocaleString();
+        const deliveryTime = shipment.deliveryTime === 0 ? "Not Delivered" : new Date(parseInt(shipment.deliveryTime) * 1000).toLocaleString();
+        const distance = shipment.distance.toString(); // Convert if needed
+        const price = ethers.formatEther(shipment.price); // Convert price to ether
+
+        // Map status based on the ShipmentStatus enum in the smart contract
+        let status = "";
+        console.log(typeof(shipment.status))
+
+        let statusNumber = Number(shipment.status)
+
+        if (statusNumber === 0) {
+          status = "Pending";
+        } else if (statusNumber === 1) {
+          status = "In Transit";
+        } else if (statusNumber === 2) {
+          status = "Delivered";
+        }
+
+        const isPaid = shipment.isPaid ? "Paid" : "Not Paid";
+
         const item = {
-          shipmentId,
+          supplier,
           contractor,
           materialType,
           quantity,
+          pickupTime,
+          deliveryTime,
           distance,
           price,
-          status
+          status,
+          isPaid,
         };
 
         shipmentsArray.push(item);
@@ -86,10 +108,39 @@ export default function ViewShipments() {
                     <div className="w-40 h-40 border-4 border-dashed rounded-full animate-spin border-white mt-14"></div>
                   </div>
                 ) : shipments.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                    {shipments.map((shipment, index) => (
-                      <ShipmentCard shipment={shipment} key={index} />
-                    ))}
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full bg-white border border-gray-200">
+                      <thead>
+                        <tr>
+                          <th className="py-2 px-4 border-b">Supplier</th>
+                          <th className="py-2 px-4 border-b">Contractor</th>
+                          <th className="py-2 px-4 border-b">Material Type</th>
+                          <th className="py-2 px-4 border-b">Quantity</th>
+                          <th className="py-2 px-4 border-b">Pickup Time</th>
+                          <th className="py-2 px-4 border-b">Delivery Time</th>
+                          <th className="py-2 px-4 border-b">Distance</th>
+                          <th className="py-2 px-4 border-b">Price (ETH)</th>
+                          <th className="py-2 px-4 border-b">Status</th>
+                          <th className="py-2 px-4 border-b">Payment</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {shipments.map((shipment, index) => (
+                          <tr key={index}>
+                            <td className="py-2 px-4 border-b">{shipment.supplier}</td>
+                            <td className="py-2 px-4 border-b">{shipment.contractor}</td>
+                            <td className="py-2 px-4 border-b">{shipment.materialType}</td>
+                            <td className="py-2 px-4 border-b">{shipment.quantity}</td>
+                            <td className="py-2 px-4 border-b">{shipment.pickupTime}</td>
+                            <td className="py-2 px-4 border-b">{shipment.deliveryTime}</td>
+                            <td className="py-2 px-4 border-b">{shipment.distance}</td>
+                            <td className="py-2 px-4 border-b">{shipment.price}</td>
+                            <td className="py-2 px-4 border-b">{shipment.status}</td>
+                            <td className="py-2 px-4 border-b">{shipment.isPaid}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 ) : (
                   <div className="text-2xl font-bold text-red-400 text-center my-8 py-16 h-screen">
