@@ -48,7 +48,7 @@ export default function CreateShipment() {
         contractor,
         materialType,
         ethers.parseUnits(quantity, 18), // Convert quantity to a BigNumber
-        parseInt(pickupTime), // Pickup time as a timestamp (not a BigNumber)
+        new Date(pickupTime).getTime() / 1000, // Convert pickupTime to UNIX timestamp
         ethers.parseUnits(distance, 18), // Distance as BigNumber
         priceInEther, // Price in ethers
         { value: priceInEther } // Sending the value with the transaction
@@ -120,10 +120,10 @@ export default function CreateShipment() {
               </div>
               <div className="mb-6">
                 <label className="block text-left text-lg font-bold mb-2 text-indigo-100">
-                  Pickup Time (in hrs)
+                  Pickup Time
                 </label>
                 <input
-                  type="number"
+                  type="datetime-local"
                   name="pickupTime"
                   className="w-full px-4 py-2 text-base bg-[#967EDD] text-indigo-50  rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   value={formParams.pickupTime}

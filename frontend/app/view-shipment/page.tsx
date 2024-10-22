@@ -130,10 +130,10 @@ export default function ViewShipments() {
                             <td className="py-2 px-4 border-b">{shipment.supplier}</td>
                             <td className="py-2 px-4 border-b">{shipment.contractor}</td>
                             <td className="py-2 px-4 border-b">{shipment.materialType}</td>
-                            <td className="py-2 px-4 border-b">{shipment.quantity}</td>
+                            <td className="py-2 px-4 border-b">{shipment.quantity.slice(0, -18)}</td>
                             <td className="py-2 px-4 border-b">{shipment.pickupTime}</td>
                             <td className="py-2 px-4 border-b">{shipment.deliveryTime}</td>
-                            <td className="py-2 px-4 border-b">{shipment.distance}</td>
+                            <td className="py-2 px-4 border-b">{shipment.distance.slice(0, -18)}</td>
                             <td className="py-2 px-4 border-b">{shipment.price}</td>
                             <td className="py-2 px-4 border-b">{shipment.status}</td>
                             <td className="py-2 px-4 border-b">{shipment.isPaid}</td>
