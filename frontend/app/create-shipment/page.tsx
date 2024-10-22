@@ -57,7 +57,7 @@ export default function CreateShipment() {
       await tx.wait(); // Wait for transaction confirmation
 
       toast.success("Shipment created successfully!");
-      //router.push("/view-shipment"); // Navigate to the shipments page
+      router.push("/view-shipment"); // Navigate to the shipments page
     } catch (error) {
       console.error("Error creating shipment:", error);
       toast.error("Error creating shipment.");

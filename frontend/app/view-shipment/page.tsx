@@ -36,9 +36,12 @@ export default function ViewShipments() {
 
         // Map status based on the ShipmentStatus enum in the smart contract
         let status = "";
+        // console.log(shipment)
         console.log(typeof(shipment.status))
 
-        let statusNumber = Number(shipment.status)
+        const statusNumber = shipment.status
+
+        console.log(statusNumber)
 
         if (statusNumber === 0) {
           status = "Pending";
@@ -59,9 +62,11 @@ export default function ViewShipments() {
           deliveryTime,
           distance,
           price,
-          status,
+          // status,
           isPaid,
         };
+
+        // console.log(item)
 
         shipmentsArray.push(item);
       }
@@ -93,7 +98,7 @@ export default function ViewShipments() {
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
       <div className="flex flex-col items-center flex-grow">
-        <div className="max-w-6xl w-full mx-auto p-4 flex-grow py-5">
+        <div className="max-w-full w-full mx-auto p-4 flex-grow py-5">
           {isConnected ? (
             <>
               <div className="my-5">
@@ -112,6 +117,7 @@ export default function ViewShipments() {
                     <table className="min-w-full bg-white border border-gray-200">
                       <thead>
                         <tr>
+                          <th className="py-2 px-4 border-b">id</th>
                           <th className="py-2 px-4 border-b">Supplier</th>
                           <th className="py-2 px-4 border-b">Contractor</th>
                           <th className="py-2 px-4 border-b">Material Type</th>
@@ -120,13 +126,14 @@ export default function ViewShipments() {
                           <th className="py-2 px-4 border-b">Delivery Time</th>
                           <th className="py-2 px-4 border-b">Distance</th>
                           <th className="py-2 px-4 border-b">Price (ETH)</th>
-                          <th className="py-2 px-4 border-b">Status</th>
+                          {/* <th className="py-2 px-4 border-b">Status</th> */}
                           <th className="py-2 px-4 border-b">Payment</th>
                         </tr>
                       </thead>
                       <tbody>
                         {shipments.map((shipment, index) => (
                           <tr key={index}>
+                            <td className="py-2 px-4 border-b">{index}</td>
                             <td className="py-2 px-4 border-b">{shipment.supplier}</td>
                             <td className="py-2 px-4 border-b">{shipment.contractor}</td>
                             <td className="py-2 px-4 border-b">{shipment.materialType}</td>
@@ -135,7 +142,7 @@ export default function ViewShipments() {
                             <td className="py-2 px-4 border-b">{shipment.deliveryTime}</td>
                             <td className="py-2 px-4 border-b">{shipment.distance.slice(0, -18)}</td>
                             <td className="py-2 px-4 border-b">{shipment.price}</td>
-                            <td className="py-2 px-4 border-b">{shipment.status}</td>
+                            {/* <td className="py-2 px-4 border-b">{shipment.status}</td> */}
                             <td className="py-2 px-4 border-b">{shipment.isPaid}</td>
                           </tr>
                         ))}
