@@ -69,6 +69,11 @@ export default function Header() {
                 </Link>
               </li>
               <li>
+                <Link href="/get-shipment" className="hover:text-black">
+                  get-shipment
+                </Link>
+              </li>
+              <li>
                 <Link href="/view-shipment" className="hover:text-black">
                   view-shipment
                 </Link>
