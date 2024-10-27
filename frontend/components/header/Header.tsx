@@ -6,7 +6,7 @@ import { useContext, useState } from "react";
 import { FaBars, FaTimes } from "react-icons/fa";
 import { SiWalletconnect } from "react-icons/si";
 
-const Header: React.FC = () => {
+export default function Header() {
   const {
     isConnected,
     setIsConnected,
@@ -85,7 +85,7 @@ const Header: React.FC = () => {
               </li>
             </ul>
           </div>
-          <div>
+          <div className="">
             <button
               className={`px-4 py-2 rounded-full text-sm font-semibold text-white flex items-center ${
                 isConnected
@@ -114,42 +114,40 @@ const Header: React.FC = () => {
       </div>
       {isMenuOpen && (
         <nav className="md:hidden flex flex-col items-center space-y-4 mt-4">
-          <ul className="flex flex-col items-center space-y-4">
-            <li>
-              <Link href="/create-shipment" className="text-blue-300 hover:text-black">
-                Create Shipment
-              </Link>
-            </li>
-            <li>
-              <Link href="/start-shipment" className="text-blue-300 hover:text-black">
-                Start Shipment
-              </Link>
-            </li>
-            <li>
-              <Link href="/complete-shipment" className="text-blue-300 hover:text-black">
-                Complete Shipment
-              </Link>
-            </li>
-            <li>
-              <Link href="/get-shipment" className="text-blue-300 hover:text-black">
-                Get Shipment
-              </Link>
-            </li>
-            <li>
-              <Link href="/view-shipment" className="text-blue-300 hover:text-black">
-                View Shipment
-              </Link>
-            </li>
-            <li>
-              <Link href="/view-transactions" className="text-blue-300 hover:text-black">
-                View Transactions
-              </Link>
-            </li>
-          </ul>
+          <ul className="flex flex-col items-center text-black font-semibold">
+              <li>
+                <Link href="/create-shipment" className="hover:text-black">
+                  create
+                </Link>
+              </li>
+              <li>
+                <Link href="/start-shipment" className="hover:text-black">
+                  start
+                </Link>
+              </li>
+              <li>
+                <Link href="/complete-shipment" className="hover:text-black">
+                  complete
+                </Link>
+              </li>
+              <li>
+                <Link href="/get-shipment" className="hover:text-black">
+                  get-shipment
+                </Link>
+              </li>
+              <li>
+                <Link href="/view-shipment" className="hover:text-black">
+                  view-shipment
+                </Link>
+              </li>
+              <li>
+                <Link href="/view-transactions" className="hover:text-black">
+                  view-transactions
+                </Link>
+              </li>
+            </ul>
         </nav>
       )}
     </header>
   );
-};
-
-export default Header;
+}
