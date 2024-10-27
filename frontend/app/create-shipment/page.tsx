@@ -7,7 +7,7 @@ import { WalletContext } from "@/context/wallet";
 import materialTracking from "@/app/materialTracking.json"; // Import your contract's ABI and address
 
 export default function CreateShipment() {
-  const { signer, isConnected } = useContext(WalletContext) as { signer: any };
+  const { signer, isConnected } = useContext(WalletContext) as { signer: any, isConnected : any };
   const router = useRouter();
 
   const [formParams, setFormParams] = useState({
