@@ -156,7 +156,7 @@ const CompleteShipmentPage = () => {
       
       // Refresh shipment details after completion
       await fetchShipmentDetails();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error completing shipment:", error);
       setError(error.message || "Failed to complete shipment. Please try again.");
     } finally {
