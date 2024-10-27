@@ -5,7 +5,7 @@ import { WalletContext } from "@/context/wallet";
 import materialTracking from "@/app/materialTracking.json"; // ABI
 
 export default function GetShipment() {
-  const { signer, isConnected } = useContext(WalletContext);
+  const { signer, isConnected } = useContext(WalletContext) as { signer: any };
   const [supplierAddress, setSupplierAddress] = useState("");
   const [shipmentIndex, setShipmentIndex] = useState("");
   const [shipmentDetails, setShipmentDetails] = useState(null);

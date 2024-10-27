@@ -79,7 +79,7 @@ const StatusBadge = ({ status }: { status: number }) => {
 };
 
 const ViewTransactionsPage = () => {
-  const { signer } = useContext(WalletContext);
+  const { signer } = useContext(WalletContext) as { signer: any };
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [transactions, setTransactions] = useState<MaterialShipment[]>([]);
