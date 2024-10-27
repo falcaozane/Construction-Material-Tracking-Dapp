@@ -22,7 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Loader2, Search, Filter } from "lucide-react";
+import { Loader2, Search } from "lucide-react";
 
 interface MaterialShipment {
   supplier: string;
