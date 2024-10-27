@@ -1,101 +1,315 @@
 "use client";
+
 import React, { useState, useContext } from "react";
 import { WalletContext } from "@/context/wallet";
-import { useRouter } from "next/navigation";
 import { ethers } from "ethers";
 import materialTracking from "@/app/materialTracking.json";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Loader2, Search } from "lucide-react";
 
-const StartShipment = () => {
-  const { isConnected, signer } = useContext(WalletContext);
-  const [supplier, setSupplier] = useState("");
-  const [contractor, setContractor] = useState("");
-  const [index, setIndex] = useState<number | string>("");
-  const [statusMessage, setStatusMessage] = useState("");
-  const router = useRouter();
+interface MaterialShipment {
+  supplier: string;
+  contractor: string;
+  materialType: string;
+  quantity: number;
+  pickupTime: bigint;
+  deliveryTime: bigint;
+  distance: bigint;
+  price: bigint;
+  status: number;
+  isPaid: boolean;
+}
 
-  // Function to start the material shipment
-  const startShipment = async () => {
-    if (!signer || !isConnected) {
-      setStatusMessage("Please connect your wallet.");
+const StatusBadge = ({ status }: { status: number }) => {
+  const getStatusColor = (status: number) => {
+    switch (status) {
+      case 0:
+        return "bg-yellow-100 text-yellow-800";
+      case 1:
+        return "bg-blue-100 text-blue-800";
+      case 2:
+        return "bg-green-100 text-green-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const getStatusText = (status: number) => {
+    switch (status) {
+      case 0:
+        return "PENDING";
+      case 1:
+        return "IN TRANSIT";
+      case 2:
+        return "DELIVERED";
+      default:
+        return "UNKNOWN";
+    }
+  };
+
+  return (
+    <span className={`px-2 py-1 rounded-full text-sm font-medium ${getStatusColor(status)}`}>
+      {getStatusText(status)}
+    </span>
+  );
+};
+
+const StartShipmentPage = () => {
+  const { signer } = useContext(WalletContext);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [shipmentDetails, setShipmentDetails] = useState<MaterialShipment | null>(null);
+  
+  const [formData, setFormData] = useState({
+    supplierAddress: "",
+    contractorAddress: "",
+    shipmentIndex: "",
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const formatAddress = (address: string): string => {
+    return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
+  };
+
+  const formatTimestamp = (timestamp: bigint): string => {
+    if (timestamp === BigInt(0)) return "N/A";
+    try {
+      return new Date(Number(timestamp) * 1000).toLocaleString();
+    } catch (error) {
+      console.error(error);
+      return "Invalid Date";
+    }
+  };
+
+  const fetchShipmentDetails = async () => {
+    if (!signer) {
+      setError("Please connect your wallet");
       return;
     }
 
     try {
+      setLoading(true);
+      setError(null);
+
       const contract = new ethers.Contract(
         materialTracking.address,
         materialTracking.abi,
         signer
       );
 
-      setStatusMessage("Starting the shipment...");
+      const details = await contract.getMaterialShipment(
+        formData.supplierAddress,
+        formData.shipmentIndex
+      );
 
-      // Start the material shipment
-      const tx = await contract.startMaterialShipment(supplier, contractor, index);
-      await tx.wait(); // Wait for the transaction to be confirmed
-      console.log(tx)
-
-      setStatusMessage("Shipment started successfully!");
-      router.push("/get-shipment")
+      setShipmentDetails({
+        supplier: details[0],
+        contractor: details[1],
+        materialType: details[2],
+        quantity: Number(details[3]),
+        pickupTime: details[4],
+        deliveryTime: details[5],
+        distance: details[6],
+        price: details[7],
+        status: Number(details[8]),
+        isPaid: details[9],
+      });
     } catch (error) {
-      console.error("Error starting shipment:", error);
-    
-      // Check if the error has a message property
-      if (error instanceof Error) {
-        setStatusMessage('Shipment Already in Transit');
-      } else {
-        setStatusMessage("Error: Unable to start shipment.");
-      }
+      console.error("Error fetching shipment details:", error);
+      setError("Failed to fetch shipment details. Please verify the inputs and try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
+  const handleStartShipment = async () => {
+    if (!signer) {
+      setError("Please connect your wallet");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const contract = new ethers.Contract(
+        materialTracking.address,
+        materialTracking.abi,
+        signer
+      );
+
+      const tx = await contract.startMaterialShipment(
+        formData.supplierAddress,
+        formData.contractorAddress,
+        formData.shipmentIndex
+      );
+
+      await tx.wait();
+      
+      // Refresh shipment details after starting
+      await fetchShipmentDetails();
+    } catch (error: any) {
+      console.error("Error starting shipment:", error);
+      setError(error.message || "Failed to start shipment. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!signer) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
+          Please connect your wallet to continue.
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-lg">
-        <h2 className="text-2xl font-bold mb-6 text-center text-indigo-600">
-          Start Shipment
-        </h2>
-        <div className="mb-4">
-          <label className="block text-gray-700">Supplier Address:</label>
-          <input
-            type="text"
-            value={supplier}
-            onChange={(e) => setSupplier(e.target.value)}
-            className="w-full px-4 py-2 border rounded-lg"
-            placeholder="Enter supplier's address"
-          />
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
+      <div className="bg-white rounded-lg shadow-lg w-full max-w-3xl overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h2 className="text-2xl font-bold text-indigo-600">
+            Start Material Shipment
+          </h2>
         </div>
-        <div className="mb-4">
-          <label className="block text-gray-700">Contractor Address:</label>
-          <input
-            type="text"
-            value={contractor}
-            onChange={(e) => setContractor(e.target.value)}
-            className="w-full px-4 py-2 border rounded-lg"
-            placeholder="Enter contractor's address"
-          />
+
+        <div className="p-6 space-y-6">
+          {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+              {error}
+            </div>
+          )}
+
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="supplierAddress">Supplier Address</Label>
+              <Input
+                id="supplierAddress"
+                name="supplierAddress"
+                value={formData.supplierAddress}
+                onChange={handleInputChange}
+                placeholder="0x..."
+                className="mt-1"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="contractorAddress">Contractor Address</Label>
+              <Input
+                id="contractorAddress"
+                name="contractorAddress"
+                value={formData.contractorAddress}
+                onChange={handleInputChange}
+                placeholder="0x..."
+                className="mt-1"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="shipmentIndex">Shipment Index</Label>
+              <Input
+                id="shipmentIndex"
+                name="shipmentIndex"
+                value={formData.shipmentIndex}
+                onChange={handleInputChange}
+                type="number"
+                placeholder="0"
+                className="mt-1"
+              />
+            </div>
+
+            <div className="flex space-x-4">
+              <Button
+                onClick={fetchShipmentDetails}
+                disabled={loading}
+                variant="outline"
+                className="flex items-center"
+              >
+                {loading ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Search className="w-4 h-4 mr-2" />
+                )}
+                View Details
+              </Button>
+
+              <Button
+                onClick={handleStartShipment}
+                disabled={loading || !shipmentDetails || shipmentDetails.status !== 0}
+                className="flex items-center"
+              >
+                {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                Start Shipment
+              </Button>
+            </div>
+          </div>
+
+          {shipmentDetails && (
+            <div className="mt-8 border rounded-lg p-6 bg-gray-50">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Shipment Details
+              </h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-gray-500">Supplier</p>
+                  <p className="text-sm font-medium">
+                    {formatAddress(shipmentDetails.supplier)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Contractor</p>
+                  <p className="text-sm font-medium">
+                    {formatAddress(shipmentDetails.contractor)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Material Type</p>
+                  <p className="text-sm font-medium">{shipmentDetails.materialType}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Quantity</p>
+                  <p className="text-sm font-medium">{shipmentDetails.quantity}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Price</p>
+                  <p className="text-sm font-medium">
+                    {ethers.formatEther(shipmentDetails.price)} ETH
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Status</p>
+                  <StatusBadge status={shipmentDetails.status} />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Pickup Time</p>
+                  <p className="text-sm font-medium">
+                    {formatTimestamp(shipmentDetails.pickupTime)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Distance</p>
+                  <p className="text-sm font-medium">
+                    {Number(shipmentDetails.distance)} km
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-        <div className="mb-4">
-          <label className="block text-gray-700">Shipment Index:</label>
-          <input
-            type="number"
-            value={index}
-            onChange={(e) => setIndex(e.target.value)}
-            className="w-full px-4 py-2 border rounded-lg"
-            placeholder="Enter shipment index"
-          />
-        </div>
-        <button
-          onClick={startShipment}
-          className="w-full bg-indigo-600 text-white py-2 rounded-lg"
-        >
-          Start Shipment
-        </button>
-        {statusMessage && (
-          <div className="mt-4 text-center text-gray-700">{statusMessage}</div>
-        )}
       </div>
     </div>
   );
 };
 
-export default StartShipment;
+export default StartShipmentPage;
