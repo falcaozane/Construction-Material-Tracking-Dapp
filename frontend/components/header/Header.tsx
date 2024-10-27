@@ -6,7 +6,7 @@ import { useContext, useState } from "react";
 import { FaBars, FaTimes } from "react-icons/fa";
 import { SiWalletconnect } from "react-icons/si";
 
-export default function Header() {
+const Header: React.FC = () => {
   const {
     isConnected,
     setIsConnected,
@@ -85,7 +85,7 @@ export default function Header() {
               </li>
             </ul>
           </div>
-          <div className="">
+          <div>
             <button
               className={`px-4 py-2 rounded-full text-sm font-semibold text-white flex items-center ${
                 isConnected
@@ -116,18 +116,33 @@ export default function Header() {
         <nav className="md:hidden flex flex-col items-center space-y-4 mt-4">
           <ul className="flex flex-col items-center space-y-4">
             <li>
-              <Link href="/marketplace" className="text-blue-300 hover:text-black">
-                MarketPlace
+              <Link href="/create-shipment" className="text-blue-300 hover:text-black">
+                Create Shipment
               </Link>
             </li>
             <li>
-              <Link href="/sellNFT" className="text-blue-300 hover:text-black">
-                List
+              <Link href="/start-shipment" className="text-blue-300 hover:text-black">
+                Start Shipment
               </Link>
             </li>
             <li>
-              <Link href="/profile" className="text-blue-300 hover:text-black">
-                Profile
+              <Link href="/complete-shipment" className="text-blue-300 hover:text-black">
+                Complete Shipment
+              </Link>
+            </li>
+            <li>
+              <Link href="/get-shipment" className="text-blue-300 hover:text-black">
+                Get Shipment
+              </Link>
+            </li>
+            <li>
+              <Link href="/view-shipment" className="text-blue-300 hover:text-black">
+                View Shipment
+              </Link>
+            </li>
+            <li>
+              <Link href="/view-transactions" className="text-blue-300 hover:text-black">
+                View Transactions
               </Link>
             </li>
           </ul>
@@ -135,4 +150,6 @@ export default function Header() {
       )}
     </header>
   );
-}
+};
+
+export default Header;
