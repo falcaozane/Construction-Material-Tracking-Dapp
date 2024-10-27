@@ -4,7 +4,6 @@ import React, { useState, useContext } from "react";
 import { WalletContext } from "@/context/wallet";
 import { ethers } from "ethers";
 import materialTracking from "@/app/materialTracking.json";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
