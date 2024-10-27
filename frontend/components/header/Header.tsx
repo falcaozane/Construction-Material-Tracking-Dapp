@@ -12,7 +12,7 @@ const Header: React.FC = () => {
     setIsConnected,
     userAddress,
     setUserAddress,
-    //signer,
+    signer,
     setSigner,
   } = useContext(WalletContext);
 
