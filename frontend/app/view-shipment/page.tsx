@@ -202,7 +202,7 @@ const ViewShipmentPage = () => {
   if (!signer) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
+        <div className="bg-violet-100 border border-violet-400 text-violet-700 px-4 py-3 rounded">
           Please connect your wallet to continue.
         </div>
       </div>
@@ -211,7 +211,7 @@ const ViewShipmentPage = () => {
 
   return (
     <div className="container mx-auto p-4 space-y-6">
-      <h2 className="text-2xl font-bold text-indigo-600">View Shipments</h2>
+      <h2 className="text-2xl font-bold text-indigo-600 text-center">View Shipments</h2>
 
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
@@ -296,6 +296,7 @@ const ViewShipmentPage = () => {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Sr.no</TableHead>
               <TableHead>Supplier</TableHead>
               <TableHead>Contractor</TableHead>
               <TableHead>Material Type</TableHead>
@@ -303,7 +304,7 @@ const ViewShipmentPage = () => {
               <TableHead>Pickup Time</TableHead>
               <TableHead>Delivery Time</TableHead>
               <TableHead>Distance</TableHead>
-              <TableHead>Price</TableHead>
+              <TableHead>Price (ETH)</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Paid</TableHead>
             </TableRow>
@@ -311,6 +312,7 @@ const ViewShipmentPage = () => {
           <TableBody>
             {filteredShipments.map((shipment, index) => (
               <TableRow key={index}>
+                <TableCell>{index}</TableCell>
                 <TableCell>{formatAddress(shipment.supplier)}</TableCell>
                 <TableCell>{formatAddress(shipment.contractor)}</TableCell>
                 <TableCell>{shipment.materialType}</TableCell>

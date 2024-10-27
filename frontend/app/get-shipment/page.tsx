@@ -72,12 +72,12 @@ export default function GetShipment() {
                 <h6 className="text-[16px] text-center text-[#FF385C] mb-7">
                   Enter supplier address and shipment index
                 </h6>
-                <div className="flex justify-center mb-6">
+                <div className="flex flex-col md:flex-row justify-center mb-6 gap-2">
                   <input
                     type="text"
                     name="supplierAddress"
                     placeholder="Supplier Address"
-                    className="w-60 px-4 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full md:w-60 px-4 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-4 md:mb-0 md:mr-4"
                     value={supplierAddress}
                     onChange={handleSupplierChange}
                   />
@@ -85,13 +85,13 @@ export default function GetShipment() {
                     type="number"
                     name="shipmentIndex"
                     placeholder="Shipment Index"
-                    className="w-60 ml-4 px-4 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-full md:w-60 px-4 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-4 md:mb-0"
                     value={shipmentIndex}
                     onChange={handleShipmentIndexChange}
                   />
                   <button
                     onClick={getShipment}
-                    className="ml-4 py-2 px-6 bg-[#5E2B9D] text-white font-bold rounded-lg"
+                    className="py-2 px-6 bg-[#5E2B9D] text-white font-bold rounded-lg"
                     disabled={!supplierAddress || !shipmentIndex || loading}
                   >
                     {loading ? "Loading..." : "Get Shipment"}

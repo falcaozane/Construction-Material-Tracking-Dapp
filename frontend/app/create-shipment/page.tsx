@@ -74,14 +74,14 @@ export default function CreateShipment() {
     <div className="flex flex-col min-h-screen bg-[#DED9FA]">
       {isConnected ? (
         <div className="flex flex-col items-center justify-center flex-grow mx-2">
-          <div className="border-2  bg-[#7557B8] w-full max-w-lg p-8  rounded-2xl my-5">
+          <div className="border-2  bg-[#7557B8] w-full max-w-2xl p-8  rounded-2xl my-5">
             <h2 className="text-3xl md:text-4xl text-white mb-5 text-center uppercase font-extrabold">
               Create Material Shipment
             </h2>
             <h5 className="font-bold text-md my-2 text-center text-white">
               Input Shipment Details
             </h5>
-            <form>
+            <form className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-2 mx-auto items-center">
               <div className="mb-6">
                 <label className="block text-left text-lg font-bold mb-2 text-indigo-100">
                   Contractor Address
@@ -154,22 +154,26 @@ export default function CreateShipment() {
                   onChange={handleInputChange}
                 />
               </div>
-              <button
-                type="button"
-                onClick={createShipment}
-                disabled={!isFormValid || isSubmitting}
-                className={`w-full py-3 px-6 text-lg font-bold rounded-lg transition-colors ${
-                  isFormValid
-                    ? "bg-white text-[#5E2B9D] hover:bg-gray-100"
-                    : "bg-white text-[#5E2B9D] cursor-not-allowed"
-                }`}
-              >
-                {isSubmitting ? (
-                  <span className="inline-block bo border-l-white rounded-full mr-2 w-6 h-6 animate-spin" />
-                ) : (
-                  "Create Shipment"
-                )}
-              </button>
+              
+                <button
+                  type="button"
+                  onClick={createShipment}
+                  disabled={!isFormValid || isSubmitting}
+                  className={`w-full py-3 px-6 text-lg font-bold rounded-lg transition-colors ${
+                    isFormValid
+                      ? "bg-white text-[#5E2B9D] hover:bg-gray-100"
+                      : "bg-white text-[#5E2B9D] cursor-not-allowed"
+                  }`}
+                >
+                  {isSubmitting ? (
+                    <span className="inline-block bo border-l-white rounded-full mr-2 w-6 h-6 animate-spin" />
+                  ) : (
+                    "Create Shipment"
+                  )}
+                </button>
+                <button className="bg-red-500 text-white py-3 px-6 text-lg font-bold rounded-lg">
+                  Cancel transaction
+                </button>
             </form>
           </div>
         </div>

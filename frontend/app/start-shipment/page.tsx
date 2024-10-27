@@ -1,6 +1,5 @@
-"use client";
-
-import React, { useState, useContext } from "react";
+"use client"
+import React, { useState, useContext, useEffect } from "react";
 import { WalletContext } from "@/context/wallet";
 import { ethers } from "ethers";
 import materialTracking from "@/app/materialTracking.json";
@@ -8,6 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Loader2, Search } from "lucide-react";
+import { toast } from "react-toastify";
+import { QRCodeSVG } from "qrcode.react";
+import { db } from '@/app/firebase';
+import { doc, setDoc, serverTimestamp, getDoc } from "firebase/firestore";
 
 interface MaterialShipment {
   supplier: string;
@@ -20,6 +23,11 @@ interface MaterialShipment {
   price: bigint;
   status: number;
   isPaid: boolean;
+}
+
+interface TransactionRecord {
+  hash: string;
+  timestamp: number;
 }
 
 const StatusBadge = ({ status }: { status: number }) => {
@@ -61,7 +69,9 @@ const StartShipmentPage = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [shipmentDetails, setShipmentDetails] = useState<MaterialShipment | null>(null);
-  
+  const [transactionHash, setTransactionHash] = useState<string | null>(null);
+  const [transactionHistory, setTransactionHistory] = useState<Record<string, TransactionRecord[]>>({});
+
   const [formData, setFormData] = useState({
     supplierAddress: "",
     contractorAddress: "",
@@ -79,14 +89,36 @@ const StartShipmentPage = () => {
     return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
   };
 
-  const formatTimestamp = (timestamp: bigint): string => {
+  const formatTimestamp = (timestamp: bigint | number): string => {
     if (timestamp === BigInt(0)) return "N/A";
     try {
-      return new Date(Number(timestamp) * 1000).toLocaleString();
+      return new Date(typeof timestamp === 'bigint' ? Number(timestamp) * 1000 : timestamp).toLocaleString();
     } catch (error) {
       console.error(error);
       return "Invalid Date";
     }
+  };
+
+  const getShipmentKey = (supplier: string, index: string) => {
+    return `${supplier.toLowerCase()}-${index}`;
+  };
+
+  const addTransactionToHistory = async (supplier: string, index: string, hash: string) => {
+    const shipmentKey = getShipmentKey(supplier, index);
+    const newTransaction = {
+      hash,
+      timestamp: Date.now()
+    };
+    
+    setTransactionHistory(prev => ({
+      ...prev,
+      [shipmentKey]: [
+        ...(prev[shipmentKey] || []),
+        newTransaction
+      ]
+    }));
+
+    setTransactionHash(hash);
   };
 
   const fetchShipmentDetails = async () => {
@@ -114,19 +146,34 @@ const StartShipmentPage = () => {
         supplier: details[0],
         contractor: details[1],
         materialType: details[2],
-        quantity: Number(details[3]),
+        quantity: ethers.formatUnits(details[3], 18),
         pickupTime: details[4],
         deliveryTime: details[5],
-        distance: details[6],
+        distance: ethers.formatUnits(details[6], 18),
         price: details[7],
         status: Number(details[8]),
         isPaid: details[9],
       });
+
+      // Try to fetch existing transaction hash for this shipment
+      const shipmentKey = getShipmentKey(formData.supplierAddress, formData.shipmentIndex);
+      const docRef = doc(db, 'shipments', shipmentKey);
+      const docSnapshot = await getDoc(docRef);
+      
+      if (docSnapshot.exists()) {
+        const data = docSnapshot.data();
+        console.log(data)
+        if (data.transactionHash) {
+          setTransactionHash(data.transactionHash);
+        }
+      }
+
     } catch (error) {
       console.error("Error fetching shipment details:", error);
       setError("Failed to fetch shipment details. Please verify the inputs and try again.");
     } finally {
       setLoading(false);
+      toast.success("Shipment details retrieved");
     }
   };
 
@@ -135,27 +182,44 @@ const StartShipmentPage = () => {
       setError("Please connect your wallet");
       return;
     }
-
+  
     try {
       setLoading(true);
       setError(null);
-
+  
       const contract = new ethers.Contract(
         materialTracking.address,
         materialTracking.abi,
         signer
       );
-
+  
       const tx = await contract.startMaterialShipment(
         formData.supplierAddress,
         formData.contractorAddress,
         formData.shipmentIndex
       );
-
-      await tx.wait();
-      
-      // Refresh shipment details after starting
+  
+      // Wait for transaction confirmation
+      const receipt = await tx.wait();
+      const confirmedHash = receipt.hash;
+  
+      // Store transaction hash in state and history
+      await addTransactionToHistory(formData.supplierAddress, formData.shipmentIndex, confirmedHash);
+  
+      // Store in Firestore using shipment key as document ID
+      const shipmentKey = getShipmentKey(formData.supplierAddress, formData.shipmentIndex);
+      await setDoc(doc(db, 'shipments', shipmentKey), {
+        supplier: formData.supplierAddress,
+        contractor: formData.contractorAddress,
+        shipmentIndex: formData.shipmentIndex,
+        timestamp: serverTimestamp(),
+        transactionHash: confirmedHash
+      });
+  
+      // Refresh shipment details
       await fetchShipmentDetails();
+      
+      toast.success("Shipment started successfully");
     } catch (error: any) {
       console.error("Error starting shipment:", error);
       setError(error.message || "Failed to start shipment. Please try again.");
@@ -167,18 +231,25 @@ const StartShipmentPage = () => {
   if (!signer) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
+        <div className="bg-violet-100 border border-violet-400 text-violet-700 px-4 py-3 rounded">
           Please connect your wallet to continue.
         </div>
       </div>
     );
   }
 
+  const currentShipmentKey = shipmentDetails
+    ? getShipmentKey(shipmentDetails.supplier, formData.shipmentIndex)
+    : null;
+  const currentTransactions = currentShipmentKey
+    ? transactionHistory[currentShipmentKey] || []
+    : [];
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
       <div className="bg-white rounded-lg shadow-lg w-full max-w-3xl overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-2xl font-bold text-indigo-600">
+          <h2 className="text-2xl font-bold text-violet-600 text-center">
             Start Material Shipment
           </h2>
         </div>
@@ -303,6 +374,53 @@ const StartShipmentPage = () => {
                   </p>
                 </div>
               </div>
+
+              {currentTransactions.length > 0 && (
+                <div className="mt-6">
+                  <h4 className="text-md font-semibold text-gray-900 mb-2">
+                    Transaction History
+                  </h4>
+                  <div className="space-y-2">
+                    {currentTransactions.length > 0 && (
+                      <div className="mt-6">
+                        <h4 className="text-md font-semibold text-gray-900 mb-2">
+                          Transaction History
+                        </h4>
+                        <div className="space-y-2">
+                          {currentTransactions.length > 0 && (
+                            <div className="mt-6">
+                              <h4 className="text-md font-semibold text-gray-900 mb-2">
+                                Transaction History
+                              </h4>
+                              <div className="space-y-2">
+                                {currentTransactions.map((tx, index) => (
+                                  <div key={tx.hash} className="bg-white p-3 rounded border">
+                                    <p className="text-sm text-gray-500">Transaction {index + 1}</p>
+                                    <p className="text-sm font-medium text-blue-500">{tx.hash}</p>
+                                    <p className="text-xs text-gray-400">
+                                      {formatTimestamp(tx.timestamp)}
+                                    </p>
+                                    <h4 className="text-md font-semibold text-gray-900 mb-2 text-center">
+                                      Shipment QR Code
+                                    </h4>
+                                    <div className="flex justify-center">
+                                      <QRCodeSVG
+                                        value={`https://sepolia.etherscan.io/tx/${tx.hash}`} // Changed from transactionHash to tx.hash
+                                        size={150}
+                                        renderAs="svg"
+                                      />
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

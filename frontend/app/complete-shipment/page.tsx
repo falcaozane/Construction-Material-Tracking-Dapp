@@ -114,10 +114,10 @@ const CompleteShipmentPage = () => {
         supplier: details[0],
         contractor: details[1],
         materialType: details[2],
-        quantity: Number(details[3]),
+        quantity: ethers.formatUnits(details[3],18),
         pickupTime: details[4],
         deliveryTime: details[5],
-        distance: details[6],
+        distance: ethers.formatUnits(details[6],18),
         price: details[7],
         status: Number(details[8]),
         isPaid: details[9],
@@ -167,7 +167,7 @@ const CompleteShipmentPage = () => {
   if (!signer) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
+        <div className="bg-violet-100 border border-violet-400 text-violet-700 px-4 py-3 rounded">
           Please connect your wallet to continue.
         </div>
       </div>
@@ -177,8 +177,8 @@ const CompleteShipmentPage = () => {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
       <div className="bg-white rounded-lg shadow-lg w-full max-w-3xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-2xl font-bold text-indigo-600">
+        <div className="px-6 py-4 border-b border-gray-200 text-center">
+          <h2 className="text-2xl font-bold text-indigo-600 text-center">
             Complete Material Shipment
           </h2>
         </div>

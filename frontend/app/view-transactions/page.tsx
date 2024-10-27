@@ -115,6 +115,11 @@ const ViewTransactionsPage = () => {
     }
   };
 
+  // Convert BigInt to number
+  const convertBigIntToNumber = (value: bigint): number => {
+    return Number(value.toString());
+  };
+
   const fetchTransactions = async () => {
     if (!signer) {
       setError("Please connect your wallet");
@@ -141,9 +146,11 @@ const ViewTransactionsPage = () => {
         deliveryTime: tx.deliveryTime,
         distance: tx.distance,
         price: tx.price,
-        status: Number(ethers.formatUnits(tx.status,18)),
+        status: (tx.status),
         isPaid: tx.isPaid,
       }));
+
+      console.log(formattedTransactions)
 
       setTransactions(formattedTransactions);
       applyFilters(formattedTransactions);
@@ -246,7 +253,7 @@ const ViewTransactionsPage = () => {
   if (!signer) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
+        <div className="bg-violet-100 border border-violet-400 text-violet-700 px-4 py-3 rounded">
           Please connect your wallet to continue.
         </div>
       </div>
@@ -255,7 +262,7 @@ const ViewTransactionsPage = () => {
 
   return (
     <div className="container mx-auto p-4 space-y-6">
-      <h2 className="text-2xl font-bold text-indigo-600">All Material Transactions</h2>
+      <h2 className="text-2xl font-bold text-violet-600 text-center">All Material Transactions</h2>
 
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
@@ -265,13 +272,13 @@ const ViewTransactionsPage = () => {
 
       {loading && (
         <div className="flex justify-center items-center py-8">
-          <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+          <Loader2 className="w-8 h-8 animate-spin text-violet-600" />
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         {/* Status Filter */}
-        <div>
+        {/* <div>
           <Label>Status</Label>
           <Select
             value={filters.status}
@@ -287,7 +294,7 @@ const ViewTransactionsPage = () => {
               <SelectItem value="2">Delivered</SelectItem>
             </SelectContent>
           </Select>
-        </div>
+        </div> */}
 
         {/* Material Type Filter */}
         <div>
@@ -330,7 +337,7 @@ const ViewTransactionsPage = () => {
         </div>
 
         {/* Minimum Amount Filter */}
-        <div>
+        {/* <div>
           <Label>Min Amount (ETH)</Label>
           <Input
             value={filters.minAmount}
@@ -338,10 +345,10 @@ const ViewTransactionsPage = () => {
             placeholder="Min amount..."
             className="mt-1"
           />
-        </div>
+        </div> */}
 
         {/* Maximum Amount Filter */}
-        <div>
+        {/* <div>
           <Label>Max Amount (ETH)</Label>
           <Input
             value={filters.maxAmount}
@@ -349,7 +356,7 @@ const ViewTransactionsPage = () => {
             placeholder="Max amount..."
             className="mt-1"
           />
-        </div>
+        </div> */}
 
         {/* Sorting Options */}
         <div>
@@ -390,31 +397,33 @@ const ViewTransactionsPage = () => {
       <Table className="min-w-full mt-6">
         <TableHeader>
           <TableRow>
+            <TableHead>Sr.no</TableHead>
             <TableHead>Supplier</TableHead>
             <TableHead>Contractor</TableHead>
             <TableHead>Material Type</TableHead>
             <TableHead>Quantity</TableHead>
             <TableHead>Pickup Time</TableHead>
-            <TableHead>Delivery Time</TableHead>
+            {/* <TableHead>Delivery Time</TableHead> */}
             <TableHead>Price (ETH)</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Payment Status</TableHead>
+            {/* <TableHead>Status</TableHead>
+            <TableHead>Payment Status</TableHead> */}
           </TableRow>
         </TableHeader>
         <TableBody>
           {currentTransactions.map((tx, index) => (
             <TableRow key={index}>
+              <TableCell>{index}</TableCell>
               <TableCell>{formatAddress(tx.supplier)}</TableCell>
               <TableCell>{formatAddress(tx.contractor)}</TableCell>
               <TableCell>{tx.materialType}</TableCell>
               <TableCell>{tx.quantity}</TableCell>
               <TableCell>{formatTimestamp(tx.pickupTime)}</TableCell>
-              <TableCell>{formatTimestamp(tx.deliveryTime)}</TableCell>
+              {/* <TableCell>{formatTimestamp(tx.deliveryTime)}</TableCell> */}
               <TableCell>{ethers.formatEther(tx.price)} ETH</TableCell>
-              <TableCell>
-                <StatusBadge status={tx.status} />
-              </TableCell>
-              <TableCell>{tx.isPaid ? "Paid" : "Unpaid"}</TableCell>
+              {/* <TableCell>
+                <StatusBadge status={Number(tx.status)} />
+              </TableCell> */}
+              {/* <TableCell>{tx.isPaid ? "Paid" : "Unpaid"}</TableCell> */}
             </TableRow>
           ))}
         </TableBody>
