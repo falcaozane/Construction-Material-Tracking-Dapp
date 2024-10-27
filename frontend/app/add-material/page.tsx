@@ -58,8 +58,13 @@
 
 import React from 'react'
 
-export const page = () => {
+const page = () => {
   return (
-    <div>page</div>
+    <div>
+      hello world
+    </div>
   )
 }
+
+export default page
+
