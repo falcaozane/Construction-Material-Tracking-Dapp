@@ -25,11 +25,6 @@ interface MaterialShipment {
   isPaid: boolean;
 }
 
-interface TransactionRecord {
-  hash: string;
-  timestamp: number;
-}
-
 const StatusBadge = ({ status }: { status: number }) => {
   const getStatusColor = (status: number) => {
     switch (status) {
@@ -70,13 +65,19 @@ const StartShipmentPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [shipmentDetails, setShipmentDetails] = useState<MaterialShipment | null>(null);
   const [transactionHash, setTransactionHash] = useState<string | null>(null);
-  const [transactionHistory, setTransactionHistory] = useState<Record<string, TransactionRecord[]>>({});
+  const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
 
   const [formData, setFormData] = useState({
     supplierAddress: "",
     contractorAddress: "",
     shipmentIndex: "",
   });
+
+  useEffect(() => {
+    if (transactionHash) {
+      setQrCodeUrl(`https://sepolia.etherscan.io/tx/${transactionHash}`);
+    }
+  }, [transactionHash]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -101,24 +102,6 @@ const StartShipmentPage = () => {
 
   const getShipmentKey = (supplier: string, index: string) => {
     return `${supplier.toLowerCase()}-${index}`;
-  };
-
-  const addTransactionToHistory = async (supplier: string, index: string, hash: string) => {
-    const shipmentKey = getShipmentKey(supplier, index);
-    const newTransaction = {
-      hash,
-      timestamp: Date.now()
-    };
-    
-    setTransactionHistory(prev => ({
-      ...prev,
-      [shipmentKey]: [
-        ...(prev[shipmentKey] || []),
-        newTransaction
-      ]
-    }));
-
-    setTransactionHash(hash);
   };
 
   const fetchShipmentDetails = async () => {
@@ -155,14 +138,12 @@ const StartShipmentPage = () => {
         isPaid: details[9],
       });
 
-      // Try to fetch existing transaction hash for this shipment
       const shipmentKey = getShipmentKey(formData.supplierAddress, formData.shipmentIndex);
       const docRef = doc(db, 'shipments', shipmentKey);
       const docSnapshot = await getDoc(docRef);
       
       if (docSnapshot.exists()) {
         const data = docSnapshot.data();
-        console.log(data)
         if (data.transactionHash) {
           setTransactionHash(data.transactionHash);
         }
@@ -199,14 +180,11 @@ const StartShipmentPage = () => {
         formData.shipmentIndex
       );
   
-      // Wait for transaction confirmation
       const receipt = await tx.wait();
       const confirmedHash = receipt.hash;
   
-      // Store transaction hash in state and history
-      await addTransactionToHistory(formData.supplierAddress, formData.shipmentIndex, confirmedHash);
+      setTransactionHash(confirmedHash);
   
-      // Store in Firestore using shipment key as document ID
       const shipmentKey = getShipmentKey(formData.supplierAddress, formData.shipmentIndex);
       await setDoc(doc(db, 'shipments', shipmentKey), {
         supplier: formData.supplierAddress,
@@ -216,7 +194,6 @@ const StartShipmentPage = () => {
         transactionHash: confirmedHash
       });
   
-      // Refresh shipment details
       await fetchShipmentDetails();
       
       toast.success("Shipment started successfully");
@@ -237,13 +214,6 @@ const StartShipmentPage = () => {
       </div>
     );
   }
-
-  const currentShipmentKey = shipmentDetails
-    ? getShipmentKey(shipmentDetails.supplier, formData.shipmentIndex)
-    : null;
-  const currentTransactions = currentShipmentKey
-    ? transactionHistory[currentShipmentKey] || []
-    : [];
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
@@ -375,50 +345,20 @@ const StartShipmentPage = () => {
                 </div>
               </div>
 
-              {currentTransactions.length > 0 && (
+              {shipmentDetails.status != 0 && transactionHash && (
                 <div className="mt-6">
-                  <h4 className="text-md font-semibold text-gray-900 mb-2">
-                    Transaction History
+                  <h4 className="text-md font-semibold text-gray-900 mb-2 text-start">
+                    Shipment QR Code
                   </h4>
-                  <div className="space-y-2">
-                    {currentTransactions.length > 0 && (
-                      <div className="mt-6">
-                        <h4 className="text-md font-semibold text-gray-900 mb-2">
-                          Transaction History
-                        </h4>
-                        <div className="space-y-2">
-                          {currentTransactions.length > 0 && (
-                            <div className="mt-6">
-                              <h4 className="text-md font-semibold text-gray-900 mb-2">
-                                Transaction History
-                              </h4>
-                              <div className="space-y-2">
-                                {currentTransactions.map((tx, index) => (
-                                  <div key={tx.hash} className="bg-white p-3 rounded border">
-                                    <p className="text-sm text-gray-500">Transaction {index + 1}</p>
-                                    <p className="text-sm font-medium text-blue-500">{tx.hash}</p>
-                                    <p className="text-xs text-gray-400">
-                                      {formatTimestamp(tx.timestamp)}
-                                    </p>
-                                    <h4 className="text-md font-semibold text-gray-900 mb-2 text-center">
-                                      Shipment QR Code
-                                    </h4>
-                                    <div className="flex justify-center">
-                                      <QRCodeSVG
-                                        value={`https://sepolia.etherscan.io/tx/${tx.hash}`} // Changed from transactionHash to tx.hash
-                                        size={150}
-                                        renderAs="svg"
-                                      />
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
+                  <div className="flex justify-center">
+                    <QRCodeSVG
+                      value={qrCodeUrl}
+                      size={150}
+                    />
                   </div>
+                  <p className="text-sm text-center mt-2 text-gray-500">
+                    Transaction: {transactionHash}
+                  </p>
                 </div>
               )}
             </div>
