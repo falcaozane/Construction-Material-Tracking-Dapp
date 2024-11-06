@@ -286,7 +286,7 @@ const StartShipmentPage = () => {
 
               <Button
                 onClick={handleStartShipment}
-                disabled={loading || !shipmentDetails || shipmentDetails.status !== 0}
+                disabled={loading || shipmentDetails?.supplier !== signer ||!shipmentDetails || shipmentDetails.status !== 0}
                 className="flex items-center"
               >
                 {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}

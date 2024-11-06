@@ -245,7 +245,7 @@ const CompleteShipmentPage = () => {
 
               <Button
                 onClick={handleCompleteShipment}
-                disabled={loading || !shipmentDetails}
+                disabled={loading || !shipmentDetails || shipmentDetails?.contractor !== signer}
                 className="flex items-center"
               >
                 {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
