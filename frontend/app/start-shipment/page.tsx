@@ -345,7 +345,7 @@ const StartShipmentPage = () => {
                 </div>
               </div>
 
-              {shipmentDetails.status != 0 && transactionHash && (
+              {shipmentDetails.status != 0 && transactionHash && (shipmentDetails.supplier === signer || shipmentDetails.contractor === signer) && (
                 <div className="mt-6">
                   <h4 className="text-md font-semibold text-gray-900 mb-2 text-start">
                     Shipment QR Code
