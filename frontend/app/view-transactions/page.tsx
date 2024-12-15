@@ -433,7 +433,7 @@ const ViewTransactionsPage = () => {
         <Pagination>
           <PaginationPrevious
             onClick={() => setCurrentPage(currentPage - 1)}
-            disabled={currentPage === 1}
+            
           >
             Previous
           </PaginationPrevious>
@@ -451,7 +451,7 @@ const ViewTransactionsPage = () => {
           </PaginationContent>
           <PaginationNext
             onClick={() => setCurrentPage(currentPage + 1)}
-            disabled={currentPage === totalPages}
+            
           >
             Next
           </PaginationNext>
