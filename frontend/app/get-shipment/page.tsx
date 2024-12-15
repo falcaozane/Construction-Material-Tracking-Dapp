@@ -9,11 +9,24 @@ interface WalletContextType {
   isConnected: boolean;
 }
 
+interface ShipmentDetails {
+  supplier: string;
+  contractor: string;
+  materialType: string;
+  quantity: string;
+  pickupTime: string;
+  deliveryTime: string;
+  distance: string;
+  price: string;
+  status: string;
+  isPaid: string;
+}
+
 export default function GetShipment() {
   const { signer, isConnected } = useContext(WalletContext) as WalletContextType;
   const [supplierAddress, setSupplierAddress] = useState("");
   const [shipmentIndex, setShipmentIndex] = useState("");
-  const [shipmentDetails, setShipmentDetails] = useState(null);
+  const [shipmentDetails, setShipmentDetails] = useState<ShipmentDetails | null>(null);
   const [loading, setLoading] = useState(false);
 
   // Fetch shipment by supplier address and index
