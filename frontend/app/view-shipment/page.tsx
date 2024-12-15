@@ -316,10 +316,10 @@ const ViewShipmentPage = () => {
                 <TableCell>{formatAddress(shipment.supplier)}</TableCell>
                 <TableCell>{formatAddress(shipment.contractor)}</TableCell>
                 <TableCell>{shipment.materialType}</TableCell>
-                <TableCell>{convertBigIntToNumber(shipment.quantity)}</TableCell>
+                <TableCell>{(shipment.quantity)}</TableCell>
                 <TableCell>{formatTimestamp(shipment.pickupTime)}</TableCell>
                 <TableCell>{formatTimestamp(shipment.deliveryTime)}</TableCell>
-                <TableCell>{convertBigIntToNumber(shipment.distance)}</TableCell>
+                <TableCell>{(shipment.distance)}</TableCell>
                 <TableCell>{ethers.formatEther(shipment.price)} ETH</TableCell>
                 <TableCell>
                   <StatusBadge status={shipment.status} />
