@@ -31,7 +31,7 @@ interface MaterialShipment {
   quantity: number;
   pickupTime: bigint;
   deliveryTime: bigint;
-  distance: number;
+  distance: number; // Change this from bigint to number
   price: bigint;
   status: number;
   isPaid: boolean;
@@ -136,7 +136,7 @@ const ViewShipmentPage = () => {
         quantity: Number(ethers.formatUnits(details[3],18)),
         pickupTime: details[4],
         deliveryTime: details[5],
-        distance: BigInt(ethers.formatUnits(details[6],18)),
+        distance: Number(ethers.formatUnits(details[6], 18)), // Convert to number
         price: details[7],
         status: Number(details[8]),
         isPaid: details[9],
