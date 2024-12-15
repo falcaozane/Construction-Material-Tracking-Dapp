@@ -1,6 +1,19 @@
 import Link from "next/link";
 
-export default function ShipmentCard({ shipment }) {
+// Define the shipment type
+interface Shipment {
+  shipmentId: string;
+  contractor: string;
+  quantity: number;
+  distance: number;
+  price: number;
+}
+
+interface ShipmentCardProps {
+  shipment: Shipment;
+}
+
+export default function ShipmentCard({ shipment }: ShipmentCardProps) {
   
 
   return (
