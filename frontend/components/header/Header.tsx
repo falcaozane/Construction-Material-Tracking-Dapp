@@ -5,6 +5,16 @@ import Link from "next/link";
 import { useContext, useState } from "react";
 import { FaBars, FaTimes } from "react-icons/fa";
 import { SiWalletconnect } from "react-icons/si";
+import { toast } from "react-toastify";
+
+// Helper to ensure context is not undefined
+function useWalletContext() {
+  const context = useContext(WalletContext);
+  if (!context) {
+    throw new Error("WalletContext must be used within a WalletContextProvider");
+  }
+  return context;
+}
 
 export default function Header() {
   const {
@@ -14,27 +24,33 @@ export default function Header() {
     setUserAddress,
     signer,
     setSigner,
-  } = useContext(WalletContext)!;
+  } = useWalletContext();
 
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
 
   const connectWallet = async () => {
-    if (!window.ethereum) {
-      throw new Error("Metamask is not installed");
+    const ethereum = (window as any).ethereum;
+  
+    if (!ethereum) {
+      // alert("Metamask is not installed");
+      toast.error("Metamask is not installed")
+      return;
     }
-
+  
     try {
-      const provider = new BrowserProvider(window.ethereum);
+      const provider = new BrowserProvider(ethereum);
       const signer = await provider.getSigner();
       setSigner(signer);
+  
       const accounts = await provider.send("eth_requestAccounts", []);
       setIsConnected(true);
       setUserAddress(accounts[0]);
+  
       const network = await provider.getNetwork();
       console.log(network);
       const chainID = network.chainId;
       const sepolia = "11155111";
-
+  
       if (chainID.toString() !== sepolia) {
         alert("Please switch your MetaMask to Sepolia network");
         return;
@@ -42,7 +58,7 @@ export default function Header() {
     } catch (error) {
       console.error("Connection error: ", error);
     }
-  };
+  };  
 
   return (
     <header className="sticky top-0 z-20 left-0 w-full bg-white text-black p-4 shadow-md">
