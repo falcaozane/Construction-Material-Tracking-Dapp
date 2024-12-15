@@ -71,7 +71,7 @@ const CompleteShipmentPage = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [e.target.name]: e.target.name === 'shipmentIndex' ? Number(e.target.value) : e.target.value,
     });
   };
 
@@ -107,7 +107,7 @@ const CompleteShipmentPage = () => {
 
       const details = await contract.getMaterialShipment(
         formData.supplierAddress,
-        formData.shipmentIndex
+        Number(formData.shipmentIndex)
       );
 
       setShipmentDetails({
