@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import materialTrackingJson from './MaterialTracking.json';
+import materialTrackingJson from '../frontend/contract/MaterialTracking.json';
 import { useContext } from "react";
 
 import { WalletContext } from "@/context/wallet";

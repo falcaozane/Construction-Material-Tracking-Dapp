@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import materialTrackingJson from './MaterialTracking.json';
+import materialTrackingJson from '../frontend/contract/MaterialTracking.json';
 
 // Define the contract address (ensure this matches your deployed contract address)
 const contractAddress = materialTrackingJson.address;
