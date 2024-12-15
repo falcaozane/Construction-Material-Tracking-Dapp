@@ -25,7 +25,12 @@ export default function CreateShipment() {
   useEffect(() => {
     const { contractor, materialType, quantity, pickupTime, distance, price } = formParams;
     setIsFormValid(
-      contractor && materialType && quantity && pickupTime && distance && price
+      Boolean(contractor) && 
+      Boolean(materialType) && 
+      Boolean(quantity) && 
+      Boolean(pickupTime) && 
+      Boolean(distance) && 
+      Boolean(price)
     );
   }, [formParams]);
 
