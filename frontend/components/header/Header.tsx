@@ -14,7 +14,7 @@ export default function Header() {
     setUserAddress,
     signer,
     setSigner,
-  } = useContext(WalletContext);
+  } = useContext(WalletContext)!;
 
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
 

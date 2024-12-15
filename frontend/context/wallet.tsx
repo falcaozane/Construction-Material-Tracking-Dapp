@@ -2,13 +2,15 @@
 
 import { createContext, ReactNode, useState } from "react";
 
+import { JsonRpcSigner } from "ethers";
+
 interface WalletContextProps {
   isConnected: boolean;
   setIsConnected: (value: boolean) => void;
   userAddress: string | null;
   setUserAddress: (address: string | null) => void;
-  signer: any;
-  setSigner: (signer: any) => void;
+  signer: JsonRpcSigner | null;
+  setSigner: (signer: JsonRpcSigner | null) => void;
 }
 
 export const WalletContext = createContext<WalletContextProps | undefined>(undefined);
