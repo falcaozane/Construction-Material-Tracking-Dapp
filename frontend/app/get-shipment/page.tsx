@@ -4,8 +4,13 @@ import { ethers } from "ethers";
 import { WalletContext } from "@/context/wallet";
 import materialTracking from "@/app/materialTracking.json"; // ABI
 
+interface WalletContextType {
+  signer: any;
+  isConnected: boolean;
+}
+
 export default function GetShipment() {
-  const { signer, isConnected } = useContext(WalletContext) as { signer: any };
+  const { signer, isConnected } = useContext(WalletContext) as WalletContextType;
   const [supplierAddress, setSupplierAddress] = useState("");
   const [shipmentIndex, setShipmentIndex] = useState("");
   const [shipmentDetails, setShipmentDetails] = useState(null);
