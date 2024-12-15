@@ -117,7 +117,7 @@ const CompleteShipmentPage = () => {
         quantity: Number(ethers.formatUnits(details[3],18)),
         pickupTime: details[4],
         deliveryTime: details[5],
-        distance: Number(ethers.formatUnits(details[6],18)),
+        distance: BigInt(ethers.formatUnits(details[6],18)),
         price: details[7],
         status: Number(details[8]),
         isPaid: details[9],
