@@ -1,0 +1,221 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract MaterialTrackingWithQualityAndValidators {
+    enum ShipmentStatus { PENDING, IN_TRANSIT, DELIVERED, CANCELED }
+    enum QualityCheck { PENDING, APPROVED, REJECTED }
+
+    struct MaterialShipment {
+        address supplier;
+        address contractor;
+        string materialType;
+        uint256 quantity;
+        uint256 pickupTime;
+        uint256 deliveryTime;
+        uint256 distance;
+        uint256 price;
+        uint256 stake;
+        ShipmentStatus status;
+        bool isPaid;
+        QualityCheck qualityStatus;
+        uint256 validatorApprovals;
+        uint256 totalValidators;
+    }
+
+    address public owner;
+    mapping(address => MaterialShipment[]) public shipments;
+    mapping(address => bool) public validators;
+    address[] public validatorPool;
+    mapping(address => uint256) public rewards;
+    mapping(address => mapping(uint256 => mapping(address => bool))) public validatorApprovalTracker;
+    uint256 public shipmentCount;
+
+    event ShipmentCreated(address indexed supplier, address indexed contractor, uint256 price, uint256 stake);
+    event ShipmentQualityChecked(address indexed validator, address indexed supplier, uint256 index, QualityCheck result);
+    event ShipmentInTransit(address indexed supplier, uint256 index);
+    event ShipmentCompleted(address indexed supplier, uint256 index, uint256 bonus);
+    event ShipmentCanceled(address indexed contractor, uint256 index, uint256 penalty);
+    event ValidatorRegistered(address indexed validator);
+    event ValidatorSelected(address indexed validator, uint256 shipmentId);
+    event ValidatorRemoved(address indexed validator);
+    event RewardDistributed(address indexed validator, uint256 amount);
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Only owner can call this function");
+        _;
+    }
+
+    modifier onlyValidator() {
+        require(validators[msg.sender], "Not a validator");
+        _;
+    }
+
+    modifier onlyContractor(address _supplier, uint256 _index) {
+        require(shipments[_supplier][_index].contractor == msg.sender, "Not the contractor");
+        _;
+    }
+
+    constructor() {
+        owner = msg.sender;
+        shipmentCount = 0;
+    }
+
+    // Register validators
+    function registerValidator() public {
+        require(!validators[msg.sender], "Already registered as a validator");
+
+        validators[msg.sender] = true;
+        validatorPool.push(msg.sender);
+
+        emit ValidatorRegistered(msg.sender);
+    }
+
+    // Remove validator
+    function removeValidator(address _validator) public onlyOwner {
+        require(validators[_validator], "Not a validator");
+        validators[_validator] = false;
+
+        for (uint256 i = 0; i < validatorPool.length; i++) {
+            if (validatorPool[i] == _validator) {
+                validatorPool[i] = validatorPool[validatorPool.length - 1];
+                validatorPool.pop();
+                break;
+            }
+        }
+
+        emit ValidatorRemoved(_validator);
+    }
+
+    // Create a new shipment with staking
+    function createMaterialShipment(
+        address _contractor,
+        string memory _materialType,
+        uint256 _quantity,
+        uint256 _pickupTime,
+        uint256 _distance,
+        uint256 _price
+    ) public payable {
+        uint256 stakeAmount = _price / 10; // 10% stake
+        require(msg.value == _price + stakeAmount, "Payment and stake mismatch");
+
+        MaterialShipment memory newShipment = MaterialShipment({
+            supplier: msg.sender,
+            contractor: _contractor,
+            materialType: _materialType,
+            quantity: _quantity,
+            pickupTime: _pickupTime,
+            deliveryTime: 0,
+            distance: _distance,
+            price: _price,
+            stake: stakeAmount,
+            status: ShipmentStatus.PENDING,
+            isPaid: false,
+            qualityStatus: QualityCheck.PENDING,
+            validatorApprovals: 0,
+            totalValidators: 0
+        });
+
+        shipments[msg.sender].push(newShipment);
+        shipmentCount++;
+
+        emit ShipmentCreated(msg.sender, _contractor, _price, stakeAmount);
+    }
+
+    // Randomly select a validator
+    function selectValidator(uint256 shipmentId) public onlyOwner returns (address) {
+        require(validatorPool.length > 0, "No validators available");
+
+        uint256 randomIndex = uint256(
+            keccak256(abi.encodePacked(block.timestamp, block.difficulty, shipmentId))
+        ) % validatorPool.length;
+
+        address selectedValidator = validatorPool[randomIndex];
+        emit ValidatorSelected(selectedValidator, shipmentId);
+
+        return selectedValidator;
+    }
+
+    // Quality check by validators
+    function performQualityCheck(address _supplier, uint256 _index, bool isApproved) public onlyValidator {
+        MaterialShipment storage shipment = shipments[_supplier][_index];
+        require(shipment.status == ShipmentStatus.PENDING, "Shipment must be pending for quality check");
+        require(!validatorApprovalTracker[msg.sender][_index][_supplier], "Validator has already reviewed this shipment");
+
+        validatorApprovalTracker[msg.sender][_index][_supplier] = true;
+        shipment.totalValidators++;
+
+        if (isApproved) {
+            shipment.validatorApprovals++;
+        }
+
+        if (shipment.validatorApprovals > shipment.totalValidators / 2) {
+            shipment.qualityStatus = QualityCheck.APPROVED;
+        } else if (shipment.totalValidators - shipment.validatorApprovals > shipment.totalValidators / 2) {
+            shipment.qualityStatus = QualityCheck.REJECTED;
+        }
+
+        emit ShipmentQualityChecked(msg.sender, _supplier, _index, shipment.qualityStatus);
+    }
+
+    // Start shipment
+    function startMaterialShipment(address _supplier, uint256 _index) public onlyContractor(_supplier, _index) {
+        MaterialShipment storage shipment = shipments[_supplier][_index];
+        require(shipment.status == ShipmentStatus.PENDING, "Shipment not in pending state");
+        require(shipment.qualityStatus == QualityCheck.APPROVED, "Quality check not approved");
+
+        shipment.status = ShipmentStatus.IN_TRANSIT;
+        emit ShipmentInTransit(_supplier, _index);
+    }
+
+    // Complete shipment
+    function completeMaterialShipment(address _supplier, uint256 _index) public onlyContractor(_supplier, _index) {
+        MaterialShipment storage shipment = shipments[_supplier][_index];
+        require(shipment.status == ShipmentStatus.IN_TRANSIT, "Shipment not in transit");
+
+        shipment.status = ShipmentStatus.DELIVERED;
+        shipment.deliveryTime = block.timestamp;
+        shipment.isPaid = true;
+
+        uint256 bonus = shipment.stake / 5; // 20% bonus
+        uint256 totalPayment = shipment.price + shipment.stake + bonus;
+        payable(shipment.supplier).transfer(totalPayment);
+
+        emit ShipmentCompleted(_supplier, _index, bonus);
+    }
+
+    // Cancel shipment
+    function cancelShipment(address _supplier, uint256 _index) public onlyContractor(_supplier, _index) {
+        MaterialShipment storage shipment = shipments[_supplier][_index];
+        require(shipment.status == ShipmentStatus.PENDING, "Shipment must be pending to cancel");
+        require(shipment.qualityStatus == QualityCheck.REJECTED, "Quality check must have failed");
+
+        shipment.status = ShipmentStatus.CANCELED;
+        uint256 penalty = shipment.stake / 2;
+        payable(msg.sender).transfer(penalty);
+        payable(shipment.supplier).transfer(shipment.stake - penalty);
+
+        emit ShipmentCanceled(msg.sender, _index, penalty);
+    }
+
+    // Reward validators
+    function rewardValidator(address _validator, uint256 amount) public onlyOwner {
+        require(validators[_validator], "Not a validator");
+        rewards[_validator] += amount;
+
+        emit RewardDistributed(_validator, amount);
+    }
+
+    // Claim rewards
+    function claimRewards() public {
+        uint256 reward = rewards[msg.sender];
+        require(reward > 0, "No rewards to claim");
+
+        rewards[msg.sender] = 0;
+        payable(msg.sender).transfer(reward);
+    }
+
+    // Get total validators
+    function getTotalValidators() public view returns (uint256) {
+        return validatorPool.length;
+    }
+}
