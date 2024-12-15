@@ -41,7 +41,7 @@ export default function GetShipment() {
         materialType: shipment[2],
         quantity: ethers.formatUnits(shipment[3], 18), // Assuming quantity is in wei
         pickupTime: new Date(Number(shipment[4]) * 1000).toLocaleString(), // Convert BigInt to Number
-        deliveryTime: shipment[5] === 0n ? "Not Delivered" : new Date(Number(shipment[5]) * 1000).toLocaleString(), // Convert BigInt to Number
+        deliveryTime: shipment[5] === BigInt(0) ? "Not Delivered" : new Date(Number(shipment[5]) * 1000).toLocaleString(), // Convert BigInt to Number
         distance: ethers.formatUnits(shipment[6], 18), // Assuming distance is in wei
         price: ethers.formatEther(shipment[7]), // Price in Ether
         status: ["Pending", "In Transit", "Delivered"][Number(shipment[8])], // Convert BigInt to Number for index
